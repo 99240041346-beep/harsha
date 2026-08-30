@@ -12,6 +12,7 @@ import android.speech.tts.TextToSpeech
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import com.harsha.assistant.cloud.HarshaCloudClient
 import com.harsha.assistant.commands.CommandRouter
 import java.util.Locale
 
@@ -19,6 +20,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
     private lateinit var speechRecognizer: SpeechRecognizer
     private lateinit var tts: TextToSpeech
     private lateinit var router: CommandRouter
+    private lateinit var cloud: HarshaCloudClient
     private lateinit var status: TextView
     private lateinit var response: TextView
     private lateinit var commandInput: EditText
@@ -30,6 +32,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         response = findViewById(R.id.response)
         commandInput = findViewById(R.id.commandInput)
         router = CommandRouter(this)
+        cloud = HarshaCloudClient()
         tts = TextToSpeech(this, this)
         findViewById<Button>(R.id.speakButton).setOnClickListener { startListening() }
         findViewById<Button>(R.id.executeButton).setOnClickListener { executeCommand(commandInput.text.toString()) }
@@ -65,8 +68,17 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
     private fun executeCommand(command: String) {
         val result = router.execute(command)
         response.text = result.message
-        status.text = if (result.success) "Done" else "Needs attention"
+        status.text = if (result.success) "Done" else "Sending to HARSHA Cloud…"
         if (::tts.isInitialized) tts.speak(result.message, TextToSpeech.QUEUE_FLUSH, null, "harsha-response")
+
+        if (!result.success && command.isNotBlank() && !BuildConfig.HARSHA_API_URL.contains("YOUR-HARSHA-VERCEL-DOMAIN")) {
+            cloud.sendCommand(command) { cloudResponse ->
+                runOnUiThread {
+                    response.text = cloudResponse
+                    status.text = "Cloud response received"
+                }
+            }
+        }
     }
 
     override fun onInit(statusCode: Int) { if (statusCode == TextToSpeech.SUCCESS) tts.language = Locale.getDefault() }
