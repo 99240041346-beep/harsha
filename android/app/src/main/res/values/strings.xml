@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">HARSHA</string>
+    <string name="status_ready">Ready — tap Speak or type a command</string>
+    <string name="speak">🎙 Speak</string>
+    <string name="execute">Execute command</string>
+    <string name="command_hint">Try: open YouTube</string>
+    <string name="response_placeholder">HARSHA response will appear here.</string>
+    <string name="accessibility_description">HARSHA uses accessibility for explicit user-requested UI automation.</string>
+</resources>
