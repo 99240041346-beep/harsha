@@ -1,0 +1,5 @@
+{
+  "name":"harsha-forensic-bridge","private":true,"version":"1.0.0","type":"module",
+  "scripts":{"scan":"node scan.mjs"},
+  "dependencies":{"dotenv":"^16.4.7"}
+}
