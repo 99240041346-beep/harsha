@@ -1,0 +1,9 @@
+{
+  "name": "harsha-forensic",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix web install && npm --prefix web run build",
+    "start": "npm --prefix web start",
+    "migrate": "npm --prefix web run migrate"
+  }
+}
