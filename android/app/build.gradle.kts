@@ -11,8 +11,13 @@ android {
         applicationId = "com.harsha.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
+        buildConfigField("String", "HARSHA_API_URL", "\"https://YOUR-HARSHA-VERCEL-DOMAIN.vercel.app/api/harsha\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
