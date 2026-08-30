@@ -1,0 +1,15 @@
+.gradle/
+.idea/
+*.iml
+local.properties
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.jks
+*.keystore
+.env
+.env.local
+.vercel/
+node_modules/
+.next/
