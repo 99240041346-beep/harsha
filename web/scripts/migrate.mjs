@@ -1,0 +1,3 @@
+import pg from "pg"; import fs from "node:fs"; import path from "node:path"; import {fileURLToPath} from "node:url"; import "dotenv/config";
+const {Pool}=pg; if(!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required"); const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_SSL==="false"?false:{rejectUnauthorized:false}});
+const here=path.dirname(fileURLToPath(import.meta.url)); const schema=fs.readFileSync(path.join(here,"../../database/schema.sql"),"utf8"); try{await pool.query("BEGIN");await pool.query(schema);await pool.query("COMMIT");console.log("HARSHA database migration complete");}catch(e){await pool.query("ROLLBACK");console.error(e);process.exitCode=1}finally{await pool.end()}
