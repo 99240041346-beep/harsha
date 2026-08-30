@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS admins (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS devices (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), serial TEXT UNIQUE NOT NULL, manufacturer TEXT, model TEXT, android_version TEXT, first_seen TIMESTAMPTZ NOT NULL DEFAULT now(), last_seen TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS scans (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), device_id UUID REFERENCES devices(id) ON DELETE CASCADE, scanned_at TIMESTAMPTZ NOT NULL DEFAULT now(), status TEXT NOT NULL DEFAULT 'completed', metadata JSONB NOT NULL DEFAULT '{}'::jsonb);
+CREATE TABLE IF NOT EXISTS applications (id BIGSERIAL PRIMARY KEY, scan_id UUID REFERENCES scans(id) ON DELETE CASCADE, name TEXT, package_name TEXT, system_app BOOLEAN NOT NULL DEFAULT false, suspicious BOOLEAN NOT NULL DEFAULT false, category TEXT);
+CREATE TABLE IF NOT EXISTS sms_messages (id BIGSERIAL PRIMARY KEY, scan_id UUID REFERENCES scans(id) ON DELETE CASCADE, address TEXT, body TEXT, message_date TEXT, suspicious BOOLEAN NOT NULL DEFAULT false);
+CREATE TABLE IF NOT EXISTS contacts (id BIGSERIAL PRIMARY KEY, scan_id UUID REFERENCES scans(id) ON DELETE CASCADE, name TEXT, phone_number TEXT);
+CREATE TABLE IF NOT EXISTS files (id BIGSERIAL PRIMARY KEY, scan_id UUID REFERENCES scans(id) ON DELETE CASCADE, path TEXT, size_bytes BIGINT, suspicious BOOLEAN NOT NULL DEFAULT false);
+CREATE TABLE IF NOT EXISTS processes (id BIGSERIAL PRIMARY KEY, scan_id UUID REFERENCES scans(id) ON DELETE CASCADE, pid TEXT, name TEXT, suspicious BOOLEAN NOT NULL DEFAULT false, category TEXT);
+CREATE TABLE IF NOT EXISTS findings (id BIGSERIAL PRIMARY KEY, scan_id UUID REFERENCES scans(id) ON DELETE CASCADE, severity TEXT, title TEXT, detail TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS audit_logs (id BIGSERIAL PRIMARY KEY, admin_id UUID REFERENCES admins(id) ON DELETE SET NULL, action TEXT NOT NULL, device_id UUID REFERENCES devices(id) ON DELETE SET NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), metadata JSONB NOT NULL DEFAULT '{}'::jsonb);
+CREATE INDEX IF NOT EXISTS idx_scans_device_time ON scans(device_id, scanned_at DESC);
+CREATE INDEX IF NOT EXISTS idx_findings_scan ON findings(scan_id);
