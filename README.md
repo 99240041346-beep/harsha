@@ -1,69 +1,81 @@
-# HARSHA 🤖 — Android AI Assistant
+# HARSHA 🤖 — Android AI Assistant + Mobile Forensics
 
-HARSHA is a JARVIS-style Android assistant project with a cloud-ready Vercel backend.
+HARSHA now includes an **administrator-only mobile forensic dashboard** and a local ADB acquisition bridge for authorized Android devices.
 
 ## Repository layout
 
-- `android/` — Kotlin Android application
-- `web/` — Next.js/Vercel cloud API and landing page
-- `.github/workflows/` — automatic Android APK and Vercel deployment workflows
-- `docs/` — setup and deployment documentation
+- `android/` — Kotlin Android assistant application
+- `web/` — Next.js/Vercel dashboard and protected API
+- `bridge/` — local Node.js ADB forensic collector
+- `.github/workflows/` — automatic Android APK build
+- `docs/` — setup notes
 
-## Deployment
+## Forensic dashboard
 
-### 1. GitHub
+The web dashboard provides:
 
-Create an empty GitHub repository named `HARSHA`, then push this repository.
+- Administrator login
+- ADB connection state
+- Refresh / latest scan button
+- Device model, manufacturer, Android version and serial
+- Counts for installed apps, SMS, contacts, files and running processes
+- App/process review heuristics for common security-tool or suspicious-name indicators
+- Suspicious SMS review indicators
+- Evidence tables for apps, SMS, contacts, files and processes
+- Security findings summary
 
-The Android workflow builds:
+The collector is designed for **authorized/defensive forensic analysis**. It does not bypass Android security controls, gain root, or claim that a heuristic match is proof of malware.
 
-`HARSHA-debug.apk`
+## Important architecture detail
 
-and uploads it as a GitHub Actions artifact.
+A Vercel-hosted website cannot directly execute `adb` against a USB phone attached to your PC. Therefore the system uses:
 
-### 2. Vercel
+`Android phone → USB/ADB → local bridge → HTTPS POST → Vercel API → admin dashboard`
 
-Import the same GitHub repository into Vercel and set the project root to `web`.
+The local bridge performs acquisition and the Vercel app presents the results. The current API keeps the latest result in process memory; a persistent database can be added later when multi-device/history retention is required.
 
-Required environment variables for the cloud API:
+## Environment variables
 
-`HARSHA_API_SECRET`
-`AI_API_KEY` (only when an AI provider is configured)
+For Vercel (`web`):
 
-Never put provider API keys inside the Android APK.
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `ADMIN_SESSION_SECRET`
+- `FORENSIC_BRIDGE_SECRET`
 
-## Local Android build
+Use strong random values. Do not commit secrets.
 
-Install Android Studio, Android SDK 35, and JDK 17.
+For `bridge/.env`:
 
-From the repository root:
-
-```powershell
-cd android
-gradle wrapper --gradle-version 8.10.2
-.\gradlew.bat assembleDebug
+```text
+HARSHA_API_URL=https://YOUR-VERCEL-DOMAIN.vercel.app
+FORENSIC_BRIDGE_SECRET=the-same-bridge-secret-as-vercel
+ADB_PATH=adb
 ```
 
-APK:
+On Windows, `ADB_PATH` may be the full path to `platform-tools\\adb.exe`.
 
-`android/build/outputs/apk/debug/android-debug.apk`
+## Run the bridge
 
-## Current assistant commands
+Install Android platform-tools and authorize the test phone for USB debugging. Then:
 
-The starter app supports:
+```powershell
+cd bridge
+npm install
+copy .env.example .env
+npm run scan
+```
 
-- open YouTube
-- open Chrome
-- open Settings
-- go Home
-- web search
-- voice input
-- text-to-speech
+The scan collects data that the connected ADB context/device permits. SMS and contacts may be unavailable on modern Android builds unless the authorized acquisition path has the required access.
 
-The Accessibility Service is included as a foundation for explicit, user-requested UI automation.
+## Vercel deployment
 
-## Roadmap
+Import the GitHub repository into Vercel and set the **Root Directory** to `web`. Configure the four environment variables above, then deploy.
 
-Voice → AI brain → tool registry → risk gate → Android APIs/accessibility → result.
+## Android build
 
-Future features can add memory, routines, notifications, media control, screen understanding, device sync and PC control.
+Install Android Studio, Android SDK 35 and JDK 17. The GitHub Actions workflow builds the debug APK automatically.
+
+## Security
+
+Treat SMS, contacts and files as sensitive evidence. Use this system only on devices you own or are explicitly authorized to examine. For production evidence handling, add durable encrypted storage, audit logging, retention controls and stronger authentication before storing raw content.
