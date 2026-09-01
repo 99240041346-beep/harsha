@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db, withTransaction } from "../../../lib/db";
-import { verify } from "../admin/login/route";
+import { verify } from "../../../lib/admin-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
