@@ -1,9 +1,5 @@
-import { createHmac } from "crypto";
 import { NextResponse } from "next/server";
-
-function token(email: string) {
-  return createHmac("sha256", process.env.ADMIN_SESSION_SECRET!).update(email).digest("hex");
-}
+import { tokenForEmail } from "../../../lib/admin-auth";
 
 export async function POST(req: Request) {
   if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD || !process.env.ADMIN_SESSION_SECRET) {
@@ -17,6 +13,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
   const response = NextResponse.json({ ok: true });
-  response.cookies.set("harsha_admin", token(email), { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 28800 });
+  response.cookies.set("harsha_admin", tokenForEmail(email), { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 28800 });
   return response;
 }
